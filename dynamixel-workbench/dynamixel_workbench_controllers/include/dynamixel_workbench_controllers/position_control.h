@@ -29,6 +29,10 @@
 #include <dynamixel_workbench_msgs/DynamixelStateList.h>
 #include <dynamixel_workbench_msgs/JointCommand.h>
 
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+#define PI 3.141592
+
 class PositionControl
 {
  private:
@@ -53,6 +57,8 @@ class PositionControl
   DynamixelWorkbench *dxl_wb_;
   uint8_t dxl_id_[16];
   uint8_t dxl_cnt_;
+
+  Eigen::Vector3d angle_Calibration;
 
  public:
   PositionControl();

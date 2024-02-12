@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MyPluginWidget</class>
+ <widget class="QWidget" name="MyPluginWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>685</width>
+    <height>419</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_4">
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <widget class="QWidget" name="widget_2" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>671</width>
+        <height>381</height>
+       </rect>
+      </property>
+      <widget class="QWidget" name="gridLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>89</width>
+         <height>151</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="Cmd_">
+        <item row="0" column="0">
+         <widget class="QLabel" name="cmd_x">
+          <property name="text">
+           <string>cmd_x (m)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="cmd_y">
+          <property name="text">
+           <string>cmd_y (m)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="cmd_z">
+          <property name="text">
+           <string>cmd_z (m)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>10</y>
+         <width>501</width>
+         <height>151</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="cmd_QScroll">
+        <item row="1" column="0">
+         <widget class="QScrollBar" name="qsc_y">
+          <property name="maximum">
+           <number>10000000</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="sliderPosition">
+           <number>0</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QScrollBar" name="qsc_x">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>10000000</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="sliderPosition">
+           <number>0</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QScrollBar" name="qsc_z">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>10000000</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="GroupBox_Measured">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>180</y>
+         <width>671</width>
+         <height>191</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Measured</string>
+       </property>
+       <widget class="QLabel" name="FK_x">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>80</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_joint1">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>55</x>
+          <y>76</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="rad3">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>140</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>rad</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_joint2">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>55</x>
+          <y>106</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="FK_ym">
+        <property name="geometry">
+         <rect>
+          <x>315</x>
+          <y>110</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>m</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="rad2">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>110</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>rad</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_24">
+        <property name="geometry">
+         <rect>
+          <x>5</x>
+          <y>140</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Joint 3</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="Joint1">
+        <property name="geometry">
+         <rect>
+          <x>5</x>
+          <y>80</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Joint 1</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="rad1">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>80</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>rad</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_joint3">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>55</x>
+          <y>136</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>Null</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_26">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>110</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Y</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="FK_xm">
+        <property name="geometry">
+         <rect>
+          <x>315</x>
+          <y>80</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>m</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="Joint2">
+        <property name="geometry">
+         <rect>
+          <x>5</x>
+          <y>110</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Joint 2</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_FK_z">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>230</x>
+          <y>136</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>Null</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="FK_zm">
+        <property name="geometry">
+         <rect>
+          <x>315</x>
+          <y>140</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>m</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_FK_y">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>230</x>
+          <y>106</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="FK_z">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>140</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Z</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_FK_x">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>230</x>
+          <y>76</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_Error_y">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>106</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_30">
+        <property name="geometry">
+         <rect>
+          <x>475</x>
+          <y>80</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>m</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_9">
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>110</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Y</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_Error_x">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>76</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_29">
+        <property name="geometry">
+         <rect>
+          <x>475</x>
+          <y>110</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>m</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_8">
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>140</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Z</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="txt_Error_z">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>136</y>
+          <width>81</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>Null</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_28">
+        <property name="geometry">
+         <rect>
+          <x>475</x>
+          <y>140</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>m</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="lbl_x">
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>80</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_27">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>50</y>
+          <width>59</width>
+          <height>14</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>From FK</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_31">
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>50</y>
+          <width>111</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Error Position</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_Start">
+        <property name="geometry">
+         <rect>
+          <x>520</x>
+          <y>60</y>
+          <width>131</width>
+          <height>101</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Start !</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_32">
+        <property name="geometry">
+         <rect>
+          <x>50</x>
+          <y>50</y>
+          <width>121</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>angle measured</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_3">
+       <property name="geometry">
+        <rect>
+         <x>590</x>
+         <y>10</y>
+         <width>61</width>
+         <height>151</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="cmd_value">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lbl_cmd_x">
+          <property name="text">
+           <string>0.000</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lbl_cmd_y">
+          <property name="text">
+           <string>0.000</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lbl_cmd_z">
+          <property name="text">
+           <string>Null</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QCheckBox" name="chk_Publish">
+       <property name="geometry">
+        <rect>
+         <x>510</x>
+         <y>170</y>
+         <width>151</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Publish Command</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
