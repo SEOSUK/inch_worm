@@ -1,0 +1,407 @@
+#include "ros/ros.h"
+#include "std_msgs/String.h"
+#include "std_msgs/Float64.h"
+#include "sensor_msgs/JointState.h"
+#include <iostream>
+#include <cmath>
+#include <geometry_msgs/Twist.h>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense> 
+#include "inch_lab/admittanceSRV.h"
+#define PI 3.14159265
+
+
+double command_position_fromGUI = 0;
+
+double position_from_model_x = 0;  //  MDK 모델에 의한 position
+double position_dot_from_model_x = 0;
+
+double position_from_model_y = 0;  //  MDK 모델에 의한 position
+double position_dot_from_model_y = 0;
+
+
+double time_i_loop = 0;
+double time_f_loop = 0;
+double time_loop = 0;
+double F = 0;
+
+
+
+Eigen::Vector2d position_reference;   //  위치 입력값
+Eigen::Vector2d position_command;     //  최종 위치 
+Eigen::Vector2d joystick_command;
+Eigen::Vector2d End_Effector_Position_meas;
+Eigen::Vector2d init_position;
+
+
+Eigen::Matrix2d A_x;
+Eigen::Vector2d B_x;
+Eigen::Vector2d C_x;
+Eigen::Vector2d D_x;
+Eigen::Vector2d BT_x; //B transpose
+Eigen::Vector2d DT_x; //B transpose
+
+
+Eigen::Vector2d X_from_model_matrix_x;
+Eigen::Vector2d X_dot_from_model_matrix_x;
+Eigen::Vector2d X_from_model_matrix_T_x;
+Eigen::Vector2d X_dot_from_model_matrix_T_x;
+
+Eigen::Matrix2d A_y;
+Eigen::Vector2d B_y;
+Eigen::Vector2d C_y;
+Eigen::Vector2d D_y;
+Eigen::Vector2d BT_y; //B transpose
+Eigen::Vector2d DT_y; //B transpose
+
+
+Eigen::Vector2d X_from_model_matrix_y;
+Eigen::Vector2d X_dot_from_model_matrix_y;
+Eigen::Vector2d X_from_model_matrix_T_y;
+Eigen::Vector2d X_dot_from_model_matrix_T_y;
+
+Eigen::Vector2d angle_meas;
+Eigen::Vector2d angle_cmd;
+Eigen::Vector2d angle_safe;
+Eigen::Vector2d angle_max;
+Eigen::Vector2d angle_min;
+Eigen::Vector2d angle_real;
+Eigen::Vector2d external_force;
+Eigen::Vector2d external_torque;
+
+Eigen::Matrix2d J;
+Eigen::Matrix2d JT;
+Eigen::Matrix2d JTI;
+Eigen::Vector2d gravity_mat;
+
+
+Eigen::Vector2d measured_phi_rad;
+Eigen::Vector2d torque_from_phi;
+double phi_offset = 0;
+
+
+double i = 0;
+double law_data = 0;
+double sine_trajectory;
+/////////////////////////////////////////
+//-----------------Parameters----------//
+Eigen::Vector2d torque_constant;
+double phi_spring_constant = 0.001;
+double phi_convert2Radian = 2*3.141592/360;
+double freq_sin = 0.10;
+double Amp_sin = 0.6;
+
+double m_x = 0.02;
+double b_x = 0.08;
+double k_x = 0.28;
+
+double m_y = 0.02;
+double b_y = 0.08;
+double k_y = 0.28;
+
+double length_1 = 0.24075;
+double length_2 = 0.149;
+double mass_1 = 0.365;
+double mass_2 = 0.14;
+double com_1 = 0.14;
+double com_2 = 0.045;
+
+void init_admittance_x();
+void init_admittance_y();
+
+bool admittanceCallback(inch_lab::admittanceSRV::Request  &req,
+                                      inch_lab::admittanceSRV::Response &res)
+{
+
+  m_x = req.m_x;
+  b_x = req.d_x;
+  k_x = req.k_x;
+  
+  m_y = req.m_y;
+  b_y = req.d_y;
+  k_y = req.k_y;
+
+	init_admittance_x();
+	init_admittance_y();
+
+  ROS_WARN("MDK Changed!");
+
+  return true;
+}
+
+void sin_generator()
+{
+	i++;
+	sine_trajectory = Amp_sin * sin(2 * 3.141592 * freq_sin * i / 250);
+}
+
+void initParameters()
+{
+	torque_constant << 1, 1;
+
+	//-----MDK Model ------//
+	double m_x = 10000;
+	double b_x = 10000;
+	double k_x = 0;
+
+	double m_y = 10000;
+	double b_y = 10000;
+	double k_y = 0;
+
+    angle_max << 130 * phi_convert2Radian, 130 * phi_convert2Radian;
+    angle_min << -130 * phi_convert2Radian, -130 * phi_convert2Radian;
+
+}
+
+
+void init_admittance_x()
+{
+	A_x <<  0, 	1,
+		-k_x/m_x, -b_x/m_x;
+
+	B_x << 0, 1/m_x;
+
+	C_x << 1, 0;
+
+	D_x << 0, 0;
+
+	BT_x = B_x.transpose();
+
+	X_from_model_matrix_x << 0, 0;
+	X_dot_from_model_matrix_x << 0, 0;
+
+	X_from_model_matrix_T_x = X_from_model_matrix_x.transpose();
+	X_dot_from_model_matrix_T_x = X_dot_from_model_matrix_x.transpose();
+}
+
+
+void calc_admittance_x()
+{
+	X_dot_from_model_matrix_T_x = A_x * X_from_model_matrix_T_x + BT_x * external_force[0];
+
+	X_from_model_matrix_T_x = X_from_model_matrix_T_x + X_dot_from_model_matrix_T_x * time_loop;
+
+	position_from_model_x = X_from_model_matrix_T_x[0];
+
+	position_command[0] = position_reference[0];// - position_from_model_x; //- measured_phi_rad;
+}
+
+void init_admittance_y()
+{
+	A_y <<  0, 	1,
+		-k_y/m_y, -b_y/m_y;
+
+	B_y << 0, 1/m_y;
+
+	C_y << 1, 0;
+
+	D_y << 0, 0;
+
+	BT_y = B_y.transpose();
+
+	X_from_model_matrix_y << 0, 0;
+	X_dot_from_model_matrix_y << 0, 0;
+
+	X_from_model_matrix_T_y = X_from_model_matrix_y.transpose();
+	X_dot_from_model_matrix_T_y = X_dot_from_model_matrix_y.transpose();
+}
+
+void calc_admittance_y()
+{
+	X_dot_from_model_matrix_T_y = A_y * X_from_model_matrix_T_y + BT_y * external_force[1];
+
+	X_from_model_matrix_T_y = X_from_model_matrix_T_y + X_dot_from_model_matrix_T_y * time_loop;
+
+	position_from_model_y = X_from_model_matrix_T_y[0];
+
+	position_command[1] = position_reference[1];// - position_from_model_y; //- measured_phi_rad;
+}
+
+Eigen::Matrix2d Jacobian(Eigen::Vector2d measured_angle)
+{
+	Eigen::Matrix2d J;
+
+	J << -length_1 * sin(measured_angle[0]) - length_2 * sin(measured_angle[0] + measured_angle[1]), -length_2 * cos(measured_angle[0] + measured_angle[1]),
+					-length_2 * sin(measured_angle[0] + measured_angle[1]), 						 -length_2 * sin(measured_angle[0] + measured_angle[1]);
+
+	return J;
+}
+
+void estimate_external_force()
+{
+	//calc gravity
+	gravity_mat[0] = com_1 * cos(angle_real[0]) * mass_1 * 9.81 + (length_1 * cos(angle_meas[0]) + com_2 * cos(angle_meas[0]+angle_meas[1])) * mass_2 * 9.81;
+	gravity_mat[1] = com_2 * cos(angle_real[0] + angle_real[1]) * mass_2 * 9.81;
+
+	external_torque = torque_from_phi - gravity_mat;
+
+  	J = Jacobian(angle_meas);
+  	JT = J.transpose();
+  	JTI = JT.inverse();
+
+	external_force = JTI * external_torque;
+}
+
+void dynamixel_angle_Callback(const sensor_msgs::JointState &msg)
+{
+    angle_meas[0] = msg.position.at(0);
+    angle_meas[1] = msg.position.at(1);
+
+	angle_real = angle_meas + measured_phi_rad;
+}
+
+Eigen::Vector2d Forward_Kinematics(Eigen::Vector2d angle_meas)
+{
+    //측정값으로부터 FK 풀기
+    Eigen::Vector2d End_Effector_Position_meas_;
+    End_Effector_Position_meas_[0] = length_1*cos(angle_meas[0]) + length_2*cos(angle_meas[0] + angle_meas[1]);
+    End_Effector_Position_meas_[1] = length_1*sin(angle_meas[0]) + length_2*sin(angle_meas[0] + angle_meas[1]);
+
+    return End_Effector_Position_meas_;
+
+}
+
+void commandcallback(const geometry_msgs::Twist::ConstPtr &msg)
+{
+	// command_position_fromGUI = msg->linear.x;
+	// position_reference = command_position_fromGUI;
+}
+
+void encoder_phi_callback(const std_msgs::Float64::ConstPtr &msg)
+{
+	measured_phi_rad[0] = phi_convert2Radian* msg->data;
+    torque_from_phi[0] = - measured_phi_rad[0] * torque_constant[0];
+}
+
+Eigen::Vector2d Inverse_Kinematics(Eigen::Vector2d End_Effector_Position_cmd)
+{
+    //GUI에서 받아온 Cmd로 IK 풀기
+    Eigen::Vector2d angle_cmd_;
+    angle_cmd_[1] = acos((pow(End_Effector_Position_cmd[0],2) +  pow(End_Effector_Position_cmd[1],2) - pow(length_1,2) - pow(length_2,2)) / (2*length_1*length_2));
+    angle_cmd_[0] = atan(End_Effector_Position_cmd[1] / End_Effector_Position_cmd[0]) - atan((length_2 * sin(angle_cmd_[1])/(length_1 + length_2 * cos(angle_cmd_[1]))));
+
+    return angle_cmd_;
+}
+
+void joystickCallback(const geometry_msgs::Twist::ConstPtr &msg)
+{
+	joystick_command[0] = msg->linear.x;
+	joystick_command[1] = msg->linear.y;
+	position_reference = joystick_command + init_position;
+
+	ROS_INFO("INITPOSITION: %lf, %lf", init_position[0], init_position[1]);
+	ROS_INFO("JOYSTICKCOMMAND: %lf, %lf", joystick_command[0], joystick_command[1]);
+	ROS_INFO("position_reference: %lf, %lf", position_reference[0], position_reference[1]);
+	ROS_INFO("--------------------------------------------");
+}
+
+Eigen::Vector2d Angle_Safe_Function(Eigen::Vector2d angle_cmd)
+{
+    //로봇팔 부러짐 방지 코드
+    if(std::isnan(angle_cmd[0]) || std::isnan(angle_cmd[1])) ROS_WARN("Out of Workspace");
+    if(angle_cmd[0] > angle_max[0] || angle_cmd[0] < angle_min[0]) ROS_ERROR("angle 1 is LIMIT");
+    if(angle_cmd[1] > angle_max[1] || angle_cmd[1] < angle_min[1]) ROS_ERROR("angle 2 is LIMIT");
+
+    if(std::isnan(angle_cmd[0]) || std::isnan(angle_cmd[1]) ||
+       angle_cmd[0] > angle_max[0] || angle_cmd[0] < angle_min[0] || 
+       angle_cmd[1] > angle_max[1] || angle_cmd[1] < angle_min[1])
+    {
+        ROS_FATAL("IK ERROR!!");
+    }
+    else
+    {
+        return angle_cmd;
+    }
+	return angle_cmd;
+}
+
+int main(int argc, char** argv)
+{
+
+	ros::init(argc, argv, "Admittance_Test");
+	ros::NodeHandle n;
+	ros::Subscriber encoder_phi_sub_ = n.subscribe("/angle_deg", 10, encoder_phi_callback); // Effort, Position, Velocity
+	ros::Publisher Commandpub = n.advertise<sensor_msgs::JointState>("/goal_dynamixel_position", 100); // Final Angle Command
+    ros::Publisher measured_EE_position_pub_ = n.advertise<geometry_msgs::Twist>("/inch/EE_meas", 10);
+	ros::Publisher test_Pub_ = n.advertise<geometry_msgs::Twist>("/test", 100); //이것저것 테스트용 퍼블리셔입니다
+
+//	ros::Subscriber End_Effector_Position_cmd_sub_ = nh.subscribe("/inch/EE_cmd_gui",100,EE_cmd_gui_Callback,ros::TransportHints().tcpNoDelay());
+    ros::Subscriber dynamixel_angle_sub_ = n.subscribe("/joint_states", 100, dynamixel_angle_Callback, ros::TransportHints().tcpNoDelay());
+    ros::Subscriber haptic_sub_ = n.subscribe("/phantom/xyzrpy", 100, joystickCallback, ros::TransportHints().tcpNoDelay());
+
+
+	sensor_msgs::JointState cmd;
+//	ros::Subscriber hapticCallback_sub = n.subscribe("/now_haptic_endEffector_publisher", 10, hapticCallback);
+ 
+	initParameters();
+	init_admittance_x();
+	init_admittance_y();
+
+
+	// --조이스틱 초기값 설정용입니다.
+	ros::Rate init_rate(1);
+	ros::spinOnce();
+	init_rate.sleep();
+	ros::spinOnce();
+    init_position = Forward_Kinematics(angle_meas);
+	ROS_INFO("%lf, %lf", init_position[0], init_position[1]);
+
+
+	// ---조이스틱 초기값 설정용입니다 End
+
+	time_i_loop = ros::Time::now().toSec(); // 키자마자 퍽 튀기 방지용
+
+	ros::Rate rate(250);
+
+
+    geometry_msgs::Twist EE_meas;
+
+	while(ros::ok())
+	{
+
+	ros::spinOnce();
+
+	sensor_msgs::JointState cmd;
+	geometry_msgs::Twist test_topic;
+
+	time_f_loop = ros::Time::now().toSec();
+	time_loop = time_f_loop - time_i_loop;
+	time_i_loop = ros::Time::now().toSec();
+
+	estimate_external_force();
+
+	calc_admittance_x();
+	calc_admittance_y();
+
+
+
+    angle_cmd = Inverse_Kinematics(position_command);
+	angle_safe = Angle_Safe_Function(angle_cmd);
+    End_Effector_Position_meas = Forward_Kinematics(angle_meas);
+
+
+
+	cmd.position.push_back(angle_safe[0]);
+	cmd.position.push_back(angle_safe[1]);
+	Commandpub.publish(cmd);
+
+    EE_meas.linear.x = End_Effector_Position_meas[0];
+    EE_meas.linear.y = End_Effector_Position_meas[1];
+    measured_EE_position_pub_.publish(EE_meas);
+
+
+	test_topic.linear.x = angle_safe[0];
+	test_topic.linear.y = angle_safe[1];
+	test_topic.linear.z = measured_phi_rad[0];
+	test_topic.angular.x = angle_safe[0];
+	test_topic.angular.y = angle_safe[1];
+	test_Pub_.publish(test_topic);
+
+	rate.sleep();
+
+	}
+
+	return 0;
+
+
+}

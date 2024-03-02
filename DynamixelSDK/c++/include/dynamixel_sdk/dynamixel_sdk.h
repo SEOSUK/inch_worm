@@ -27,8 +27,6 @@
 #include "group_bulk_write.h"
 #include "group_sync_read.h"
 #include "group_sync_write.h"
-#include "group_fast_sync_read.h"
-#include "group_fast_bulk_read.h"
 #include "packet_handler.h"
 #include "port_handler.h"
 

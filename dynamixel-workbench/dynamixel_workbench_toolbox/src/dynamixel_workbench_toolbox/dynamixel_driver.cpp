@@ -584,6 +584,8 @@ const char *DynamixelDriver::findModelName(uint16_t model_num)
     model_name = "XH430-W210";
   else if (num == XH430_W350)
     model_name = "XH430-W350";
+  else if (num == XH540_W270) // ADD
+    model_name = "XH540-W270";
 
   else if (num == PRO_L42_10_S300_R)
     model_name = "PRO-L42-10-S300-R";

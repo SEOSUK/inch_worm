@@ -1003,6 +1003,96 @@ static void setXHInfo()
   model_info.max_radian = 3.14159265;
 }
 
+static void setExtXHItem() // ADD
+{
+#if defined(__OPENCR__) || defined(__OPENCM904__)
+  item[0]  = {7  , "ID"                    , 1};
+  item[1]  = {8  , "Baud_Rate"             , 1};
+  item[2]  = {11 , "Operating_Mode"        , 1};
+
+  item[3]  = {64 , "Torque_Enable"         , 1};
+  item[4]  = {65 , "LED"                   , 1};
+  item[5]  = {102, "Goal_Current"          , 2};
+  item[6]  = {104, "Goal_Velocity"         , 4};
+  item[7]  = {108, "Profile_Acceleration"  , 4};
+  item[8]  = {112, "Profile_Velocity"      , 4};
+  item[9]  = {116, "Goal_Position"         , 4};
+  item[10] = {122, "Moving"                , 1};
+  item[11] = {126, "Present_Current"       , 2};
+  item[12] = {128, "Present_Velocity"      , 4};
+  item[13] = {132, "Present_Position"      , 4};
+
+  the_number_of_item = 14;
+#else
+  item[0]  = {0  , "Model_Number"          , 2};
+  item[1]  = {6  , "Firmware_Version"      , 1};
+  item[2]  = {7  , "ID"                    , 1};
+  item[3]  = {8  , "Baud_Rate"             , 1};
+  item[4]  = {9  , "Return_Delay_Time"     , 1};
+  item[5]  = {10 , "Drive_Mode"            , 1};
+  item[6]  = {11 , "Operating_Mode"        , 1};
+  item[7]  = {12 , "Secondary_ID"          , 1};
+  item[8]  = {13 , "Protocol_Version"      , 1};
+  item[9]  = {20 , "Homing_Offset"         , 4};
+  item[10] = {24 , "Moving_Threshold"      , 4};
+  item[11] = {31 , "Temperature_Limit"     , 1};
+  item[12] = {32 , "Max_Voltage_Limit"     , 2};
+  item[13] = {34 , "Min_Voltage_Limit"     , 2};
+  item[14] = {36 , "PWM_Limit"             , 2};
+  item[15] = {40 , "Current_Limit"         , 2};
+  item[16] = {40 , "Acceleration_Limit"    , 4};
+  item[17] = {44 , "Velocity_Limit"        , 4};
+  item[18] = {48 , "Max_Position_Limit"    , 4};
+  item[19] = {52 , "Min_Position_Limit"    , 4};
+  item[20] = {63 , "Shutdown"              , 1};
+
+  item[21] = {64 , "Torque_Enable"         , 1};
+  item[22] = {65 , "LED"                   , 1};
+  item[23] = {68 , "Status_Return_Level"   , 1};
+  item[24] = {69 , "Registered_Instruction", 1};
+  item[25] = {70 , "Hardware_Error_Status" , 1};
+  item[26] = {76 , "Velocity_I_Gain"       , 2};
+  item[27] = {78 , "Velocity_P_Gain"       , 2};
+  item[28] = {80 , "Position_D_Gain"       , 2};
+  item[29] = {82 , "Position_I_Gain"       , 2};
+  item[30] = {84 , "Position_P_Gain"       , 2};
+  item[31] = {88 , "Feedforward_2nd_Gain"  , 2};
+  item[32] = {90 , "Feedforward_1st_Gain"  , 2};
+  item[33] = {98 , "Bus_Watchdog"          , 1};
+  item[34] = {100, "Goal_PWM"              , 2};
+  item[35] = {102, "Goal_Current"          , 2};
+  item[36] = {104, "Goal_Velocity"         , 4};
+  item[37] = {108, "Profile_Acceleration"  , 4};
+  item[38] = {112, "Profile_Velocity"      , 4};
+  item[39] = {116, "Goal_Position"         , 4};
+  item[40] = {120, "Realtime_Tick"         , 2};
+  item[41] = {122, "Moving"                , 1};
+  item[42] = {123, "Moving_Status"         , 1};
+  item[43] = {124, "Present_PWM"           , 2};
+  item[44] = {126, "Present_Current"       , 2};
+  item[45] = {128, "Present_Velocity"      , 4};
+  item[46] = {132, "Present_Position"      , 4};
+  item[47] = {136, "Velocity_Trajectory"   , 4};
+  item[48] = {140, "Position_Trajectory"   , 4};
+  item[49] = {144, "Present_Input_Voltage" , 2};
+  item[50] = {146, "Present_Temperature"   , 1};
+
+  the_number_of_item = 51;
+#endif  
+}
+
+static void setExtXHInfo()
+{
+  model_info.velocity_to_value_ratio       = 41.71;
+
+  model_info.value_of_min_radian_position  = 0;
+  model_info.value_of_0_radian_position    = 2048;
+  model_info.value_of_max_radian_position  = 4096;
+
+  model_info.min_radian = -3.14159265;
+  model_info.max_radian = 3.14159265;
+}
+
 static void setPROItem()
 {
 #if defined(__OPENCR__) || defined(__OPENCM904__)
@@ -1259,6 +1349,10 @@ ControlTableItem* getConrolTableItem(uint16_t model_number)
   {
     setXHItem();
   }
+  else if (num == XH540_W270) // ADD
+  {
+    setExtXHItem();
+  }
   else if (num == PRO_L54_30_S400_R || num == PRO_L54_30_S500_R  || num == PRO_L54_50_S290_R || num == PRO_L54_50_S500_R ||
            num == PRO_M42_10_S260_R || num == PRO_M54_40_S250_R  || num == PRO_M54_60_S250_R || 
            num == PRO_H42_20_S300_R || num == PRO_H54_100_S500_R || num == PRO_H54_200_S500_R)
@@ -1328,6 +1422,10 @@ ModelInfo* getModelInfo(uint16_t model_number)
   else if (num == XH430_V210 || num == XH430_V350 || num == XH430_W210 || num == XH430_W350)
   {
     setXHInfo();
+  }
+  else if (num == XH540_W270)
+  {
+    setExtXHInfo();
   }
   else if (num == PRO_L42_10_S300_R  || num == PRO_L54_30_S400_R || num == PRO_L54_30_S500_R || num == PRO_L54_50_S290_R || num == PRO_L54_50_S500_R  ||
            num == PRO_M42_10_S260_R  || num == PRO_M54_40_S250_R || num == PRO_M54_60_S250_R || num == PRO_H42_20_S300_R || num == PRO_H54_100_S500_R ||

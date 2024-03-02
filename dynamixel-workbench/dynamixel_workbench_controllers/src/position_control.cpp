@@ -21,8 +21,9 @@
 PositionControl::PositionControl()
     :node_handle_("")
 {
+
   std::string device_name   = node_handle_.param<std::string>("device_name", "/dev/ttyUSB0");
-  uint32_t dxl_baud_rate    = node_handle_.param<int>("baud_rate", 57600);
+  uint32_t dxl_baud_rate    = node_handle_.param<int>("baud_rate", 1000000);
 
   uint8_t scan_range        = node_handle_.param<int>("scan_range", 200);
 
@@ -35,21 +36,33 @@ PositionControl::PositionControl()
 
   dxl_wb_ = new DynamixelWorkbench;
 
+    ROS_WARN("asdfasdfasdf");
+
+
   dxl_wb_->begin(device_name.c_str(), dxl_baud_rate);
+    ROS_FATAL("aa");
+
   if (dxl_wb_->scan(dxl_id_, &dxl_cnt_, scan_range) != true)
   {
+    ROS_FATAL("aaaaa");
+
     ROS_ERROR("Not found Motors, Please check scan range or baud rate");
     ros::shutdown();
     return;
   }
 
+
   initMsg();
 
   for (int index = 0; index < dxl_cnt_; index++)
-    dxl_wb_->jointMode(dxl_id_[index], profile_velocity, profile_acceleration);
-
+  {
+    dxl_wb_->itemWrite(dxl_id_[index], "Torque_Enable", 0);
+    dxl_wb_->itemWrite(dxl_id_[index], "Operating_Mode", X_SERIES_CURRENT_BASED_POSITION_CONTROL_MODE);
+    dxl_wb_->itemWrite(dxl_id_[index], "Torque_Enable", 1);
+  }
+  
   dxl_wb_->addSyncWrite("Goal_Position");
-
+  dxl_wb_->addSyncRead("Present_Position");
 
   for (int index = 0; index < dxl_cnt_; index++)
   {
@@ -63,9 +76,6 @@ PositionControl::PositionControl()
 
   initPublisher();
   initSubscriber();
-  initServer();
-
-  angle_Calibration << + 0.8, 0, + 0.8;
 }
 
 PositionControl::~PositionControl()
@@ -94,39 +104,12 @@ void PositionControl::initMsg()
 
 void PositionControl::initPublisher()
 {
-  dynamixel_state_list_pub_ = node_handle_.advertise<dynamixel_workbench_msgs::DynamixelStateList>("dynamixel_state", 10);
   joint_states_pub_ = node_handle_.advertise<sensor_msgs::JointState>("joint_states", 10);
 }
 
 void PositionControl::initSubscriber()
 {
-  joint_command_sub_ = node_handle_.subscribe("goal_dynamixel_position", 10, &PositionControl::goalJointPositionCallback, this);
-}
-
-void PositionControl::initServer()
-{
-  joint_command_server_ = node_handle_.advertiseService("joint_command", &PositionControl::jointCommandMsgCallback, this);
-}
-
-void PositionControl::dynamixelStatePublish()
-{
-  dynamixel_workbench_msgs::DynamixelState     dynamixel_state[dxl_cnt_];
-  dynamixel_workbench_msgs::DynamixelStateList dynamixel_state_list;
-
-  for (int index = 0; index < dxl_cnt_; index++)
-  {
-    dynamixel_state[index].model_name          = std::string(dxl_wb_->getModelName(dxl_id_[index]));
-    dynamixel_state[index].id                  = dxl_id_[index];
-    dynamixel_state[index].torque_enable       = dxl_wb_->itemRead(dxl_id_[index], "Torque_Enable");
-    dynamixel_state[index].present_position    = dxl_wb_->itemRead(dxl_id_[index], "Present_Position");
-    dynamixel_state[index].present_velocity    = dxl_wb_->itemRead(dxl_id_[index], "Present_Velocity");
-    dynamixel_state[index].goal_position       = dxl_wb_->itemRead(dxl_id_[index], "Goal_Position");
-    dynamixel_state[index].goal_velocity       = dxl_wb_->itemRead(dxl_id_[index], "Goal_Velocity");
-    dynamixel_state[index].moving              = dxl_wb_->itemRead(dxl_id_[index], "Moving");
-
-    dynamixel_state_list.dynamixel_state.push_back(dynamixel_state[index]);
-  }
-  dynamixel_state_list_pub_.publish(dynamixel_state_list);
+  joint_command_sub_ = node_handle_.subscribe("/goal_dynamixel_position", 10, &PositionControl::goalJointPositionCallback, this);
 }
 
 void PositionControl::jointStatePublish()
@@ -136,10 +119,15 @@ void PositionControl::jointStatePublish()
   for (int index = 0; index < dxl_cnt_; index++)
     present_position[index] = dxl_wb_->itemRead(dxl_id_[index], "Present_Position");
 
-  //  int32_t present_velocity[dxl_cnt_] = {0, };
+  int32_t present_velocity[dxl_cnt_] = {0, };
 
-  // for (int index = 0; index < dxl_cnt_; index++)
-  //   present_velocity[index] = dxl_wb_->itemRead(dxl_id_[index], "Present_Velocity");
+  for (int index = 0; index < dxl_cnt_; index++)
+    present_velocity[index] = dxl_wb_->itemRead(dxl_id_[index], "Present_Velocity");
+
+  int16_t present_current[dxl_cnt_] = {0, };
+
+  for (int index = 0; index < dxl_cnt_; index++)
+    present_current[index] = dxl_wb_->itemRead(dxl_id_[index], "Present_Current");
 
   sensor_msgs::JointState dynamixel_;
   dynamixel_.header.stamp = ros::Time::now();
@@ -151,9 +139,13 @@ void PositionControl::jointStatePublish()
 
     dynamixel_.name.push_back(id_num.str());
 
-    dynamixel_.position.push_back(dxl_wb_->convertValue2Radian(dxl_id_[index], present_position[index]) - angle_Calibration[index]);
-  //  dynamixel_.velocity.push_back(dxl_wb_->convertValue2Velocity(dxl_id_[index], present_velocity[index]));
+    dynamixel_.position.push_back(dxl_wb_->convertValue2Radian(dxl_id_[index], present_position[index]));
+    dynamixel_.velocity.push_back(dxl_wb_->convertValue2Velocity(dxl_id_[index], present_velocity[index]));
+    dynamixel_.effort.push_back(dxl_wb_->convertValue2Torque(dxl_id_[index], present_current[index]));
+
+    present_position_[index] = dxl_wb_->convertValue2Radian(dxl_id_[index], present_position[index]);
   }
+
   joint_states_pub_.publish(dynamixel_);
 }
 
@@ -163,42 +155,18 @@ void PositionControl::controlLoop()
   jointStatePublish();
 }
 
-bool PositionControl::jointCommandMsgCallback(dynamixel_workbench_msgs::JointCommand::Request &req,
-                                              dynamixel_workbench_msgs::JointCommand::Response &res)
-{
-  int32_t goal_position = 0;
-  int32_t present_position = 0;
-
-  if (req.unit == "rad")
-  {
-    goal_position = dxl_wb_->convertRadian2Value(req.id, req.goal_position);
-  }
-  else if (req.unit == "raw")
-  {
-    goal_position = req.goal_position;
-  }
-  else
-  {
-    goal_position = req.goal_position;
-  }
-
-  bool ret = dxl_wb_->goalPosition(req.id, goal_position);
-
-  res.result = ret;
-}
 
 void PositionControl::goalJointPositionCallback(const sensor_msgs::JointState::ConstPtr &msg)
 {
-  double goal_position[dxl_cnt_] = {0.0, };
+  // double goal_position[dxl_cnt_] = {0.0, };
 
   for (int index = 0; index < dxl_cnt_; index++)
     goal_position[index] = msg->position.at(index);
 
-    goal_position[0] = goal_position[0] + angle_Calibration[0];
-    goal_position[1] = goal_position[1] + angle_Calibration[1];
-    goal_position[2] = goal_position[2] + angle_Calibration[2];
+    goal_position[0] = goal_position[0];
+    goal_position[1] = goal_position[1];
 
-  int32_t goal_dxl_position[dxl_cnt_] = {0, };
+  // int32_t goal_dxl_position[dxl_cnt_] = {0, };
 
   for (int index = 0; index < dxl_cnt_; index++)
   {
@@ -214,7 +182,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "position_control");
   PositionControl pos_ctrl;
 
-  ros::Rate loop_rate(250);
+  ros::Rate loop_rate(100);
 
   while (ros::ok())
   {

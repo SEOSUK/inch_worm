@@ -56,11 +56,21 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+   FILES
+   admittanceSRV.srv
+ )
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  #include
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -127,3 +137,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 add_executable(trajectory_generator src/trajectory_generator.cpp)
 add_dependencies(trajectory_generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(trajectory_generator ${catkin_LIBRARIES})
+
+add_executable(admittance_1Link src/admittance_1Link.cpp)
+add_dependencies(admittance_1Link ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(admittance_1Link ${catkin_LIBRARIES})
+
+add_executable(admittance_2Link src/admittance_2Link.cpp)
+add_dependencies(admittance_2Link ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(admittance_2Link ${catkin_LIBRARIES})

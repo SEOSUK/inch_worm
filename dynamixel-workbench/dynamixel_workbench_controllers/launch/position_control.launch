@@ -1,13 +1,13 @@
 <launch>
-  <arg name="device_name"                default="/dev/ttyUSB0"/>
+  <arg name="device_name"                default="/dev/ttyUSB1"/>
   <arg name="baud_rate"                  default="1000000"/>
 
-  <arg name="scan_range"                 default="10"/>
+  <arg name="scan_range"                 default="20"/>
 
   <arg name="profile_velocity"           default="200"/>
   <arg name="profile_acceleration"       default="50"/>
 
-  <arg name="position_p_gain"	             default="800"/>
+  <arg name="position_p_gain"	             default="500"/>
   <arg name="position_i_gain" 	             default="0"/>
   <arg name="position_d_gain"    	     default="0"/>
 

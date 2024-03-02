@@ -122,18 +122,7 @@ int PortHandlerMac::readPort(uint8_t *packet, int length)
 
 int PortHandlerMac::writePort(uint8_t *packet, int length)
 {
-  int result = write(socket_fd_, packet, length);
-
-  // Wait Tx Done
-  int unsent = 1;
-  while (unsent > 0) {
-    ioctl(socket_fd_, TIOCOUTQ, &unsent);
-  }
-  unsigned int tx_time = ((float)(length * 10) / baudrate_) * 1000000000;
-  struct timespec delay = {0, tx_time};
-  nanosleep(&delay, NULL);
-
-  return result;
+  return write(socket_fd_, packet, length);
 }
 
 void PortHandlerMac::setPacketTimeout(uint16_t packet_length)

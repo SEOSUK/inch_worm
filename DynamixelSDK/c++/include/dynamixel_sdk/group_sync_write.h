@@ -23,9 +23,10 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPSYNCWRITE_H_
 
 
+#include <map>
+#include <vector>
 #include "port_handler.h"
 #include "packet_handler.h"
-#include "group_handler.h"
 
 namespace dynamixel
 {
@@ -33,15 +34,24 @@ namespace dynamixel
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief The class for writing multiple Dynamixel data from same address with same length at once
 ////////////////////////////////////////////////////////////////////////////////
-class WINDECLSPEC GroupSyncWrite : public GroupHandler
+class WINDECLSPEC GroupSyncWrite
 {
-private:
-    uint16_t start_address_;
-    uint16_t data_length_;
+ private:
+  PortHandler    *port_;
+  PacketHandler  *ph_;
 
-    void makeParam();
+  std::vector<uint8_t>            id_list_;
+  std::map<uint8_t, uint8_t* >    data_list_; // <id, data>
 
-public:
+  bool            is_param_changed_;
+
+  uint8_t        *param_;
+  uint16_t        start_address_;
+  uint16_t        data_length_;
+
+  void    makeParam();
+
+ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that Initializes instance for Sync Write
   /// @param port PortHandler instance
@@ -55,6 +65,18 @@ public:
   /// @brief The function that calls clearParam function to clear the parameter list for Sync Write
   ////////////////////////////////////////////////////////////////////////////////
   ~GroupSyncWrite() { clearParam(); }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// @brief The function that returns PortHandler instance
+  /// @return PortHandler instance
+  ////////////////////////////////////////////////////////////////////////////////
+  PortHandler     *getPortHandler()   { return port_; }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// @brief The function that returns PacketHandler instance
+  /// @return PacketHandler instance
+  ////////////////////////////////////////////////////////////////////////////////
+  PacketHandler   *getPacketHandler() { return ph_; }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that adds id, start_address, data_length to the Sync Write list
@@ -85,7 +107,7 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that clears the Sync Write list
   ////////////////////////////////////////////////////////////////////////////////
-  void    clearParam();
+  void    clearParam  ();
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that transmits the Sync Write instruction packet which might be constructed by GroupSyncWrite::addParam function

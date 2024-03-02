@@ -58,7 +58,11 @@ class PositionControl
   uint8_t dxl_id_[16];
   uint8_t dxl_cnt_;
 
-  Eigen::Vector3d angle_Calibration;
+  Eigen::Vector2d angle_Calibration;
+  double present_position_[16];
+  double goal_position[16];
+  int32_t goal_dxl_position[16];
+
 
  public:
   PositionControl();
@@ -73,7 +77,6 @@ class PositionControl
   void dynamixelStatePublish();
   void jointStatePublish();
 
-  void initServer();
   bool jointCommandMsgCallback(dynamixel_workbench_msgs::JointCommand::Request &req,
                                dynamixel_workbench_msgs::JointCommand::Response &res);
   void goalJointPositionCallback(const sensor_msgs::JointState::ConstPtr &msg);

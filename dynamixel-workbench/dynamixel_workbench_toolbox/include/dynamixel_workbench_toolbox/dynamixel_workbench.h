@@ -43,7 +43,7 @@ class DynamixelWorkbench
   DynamixelWorkbench();
   ~DynamixelWorkbench();
 
-  bool begin(const char* device_name = "/dev/ttyUSB0", uint32_t baud_rate = 57600);
+  bool begin(const char* device_name = "/dev/ttyUSB1", uint32_t baud_rate = 1000000);
  
   bool scan(uint8_t *get_id, uint8_t *get_id_num = 0, uint8_t range = 200);
   bool ping(uint8_t id, uint16_t *get_model_number = 0);

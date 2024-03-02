@@ -25,14 +25,17 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "group_bulk_write.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/group_bulk_write.h"
 #endif
 
 using namespace dynamixel;
 
 GroupBulkWrite::GroupBulkWrite(PortHandler *port, PacketHandler *ph)
-  : GroupHandler(port, ph),
+  : port_(port),
+    ph_(ph),
+    is_param_changed_(false),
+    param_(0),
     param_length_(0)
 {
   clearParam();

@@ -118,6 +118,8 @@ void DynamixelTool::setControlTable(const char *model_name)
     setControlTable(XH430_W210);
   else if (!strncmp(name, "XH430-W350", strlen(name)))
     setControlTable(XH430_W350);
+  else if (!strncmp(name, "XH540-W270", strlen(name))) // ADD
+    setControlTable(XH540_W270);
 
   else if (!strncmp(name, "PRO-L42-10-S300-R", strlen(name)))
     setControlTable(PRO_L42_10_S300_R);
@@ -226,6 +228,8 @@ void DynamixelTool::setModelName(uint16_t model_number)
     strcpy(dxl_info_[dxl_info_cnt_].model_name, "XH430-W210");
   else if (num == XH430_W350)
     strcpy(dxl_info_[dxl_info_cnt_].model_name, "XH430-W350");
+  else if (num == XH540_W270) // ADD
+    strcpy(dxl_info_[dxl_info_cnt_].model_name, "XH540-W270");
 
   else if (num == PRO_L42_10_S300_R)
     strcpy(dxl_info_[dxl_info_cnt_].model_name, "PRO-L42-10-S300-R");
@@ -313,6 +317,8 @@ void DynamixelTool::setModelNum(const char* model_name)
     dxl_info_[dxl_info_cnt_].model_num = XH430_W210;
   else if (!strncmp(name, "XH430-W350", strlen(name)))
     dxl_info_[dxl_info_cnt_].model_num = XH430_W350;
+  else if (!strncmp(name, "XH540-W270", strlen(name))) // ADD
+    dxl_info_[dxl_info_cnt_].model_num = XH540_W270;
 
   else if (!strncmp(name, "PRO-L42-10-S300-R", strlen(name)))
     dxl_info_[dxl_info_cnt_].model_num = PRO_L42_10_S300_R;

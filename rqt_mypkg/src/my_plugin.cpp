@@ -147,13 +147,13 @@ void MyPlugin::btn_Start_Callback(bool val)
 void MyPlugin::AngleSubscriber_Callback(const sensor_msgs::JointState &msg)
 {
   angle_meas[0] = msg.position.at(0);
-  angle_meas[1] = msg.position.at(1);
+//  angle_meas[1] = msg.position.at(1);
 }
 
 void MyPlugin::measured_EE_position_Callback(const geometry_msgs::Twist &msg)
 {
   End_Effector_Position_meas[0] = msg.linear.x;
-  End_Effector_Position_meas[1] = msg.linear.y;
+//  End_Effector_Position_meas[1] = msg.linear.y;
 }
 
 }  // namespace rqt_mypkg_cpp

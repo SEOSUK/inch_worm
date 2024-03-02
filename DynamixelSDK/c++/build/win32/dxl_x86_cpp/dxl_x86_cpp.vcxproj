@@ -22,9 +22,6 @@
     <ClInclude Include="..\..\..\include\dynamixel_sdk\dynamixel_sdk.h" />
     <ClInclude Include="..\..\..\include\dynamixel_sdk\group_bulk_read.h" />
     <ClInclude Include="..\..\..\include\dynamixel_sdk\group_bulk_write.h" />
-    <ClInclude Include="..\..\..\include\dynamixel_sdk\group_fast_bulk_read.h" />
-    <ClInclude Include="..\..\..\include\dynamixel_sdk\group_fast_sync_read.h" />
-    <ClInclude Include="..\..\..\include\dynamixel_sdk\group_handler.h" />
     <ClInclude Include="..\..\..\include\dynamixel_sdk\group_sync_read.h" />
     <ClInclude Include="..\..\..\include\dynamixel_sdk\group_sync_write.h" />
     <ClInclude Include="..\..\..\include\dynamixel_sdk\packet_handler.h" />
@@ -36,9 +33,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\dynamixel_sdk\group_bulk_read.cpp" />
     <ClCompile Include="..\..\..\src\dynamixel_sdk\group_bulk_write.cpp" />
-    <ClCompile Include="..\..\..\src\dynamixel_sdk\group_fast_bulk_read.cpp" />
-    <ClCompile Include="..\..\..\src\dynamixel_sdk\group_fast_sync_read.cpp" />
-    <ClCompile Include="..\..\..\src\dynamixel_sdk\group_handler.cpp" />
     <ClCompile Include="..\..\..\src\dynamixel_sdk\group_sync_read.cpp" />
     <ClCompile Include="..\..\..\src\dynamixel_sdk\group_sync_write.cpp" />
     <ClCompile Include="..\..\..\src\dynamixel_sdk\packet_handler.cpp" />

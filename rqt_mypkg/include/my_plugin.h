@@ -15,7 +15,6 @@
 #include <eigen3/Eigen/Dense>
 #include <vector>
 #include "std_srvs/Empty.h"
-#include "rqt_mypkg/DasomDynamixel.h"
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
 

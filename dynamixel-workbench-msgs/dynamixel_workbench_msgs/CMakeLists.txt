@@ -39,6 +39,7 @@ add_message_files(
   DynamixelStateList.msg
   DynamixelInfo.msg
   DynamixelLoadInfo.msg
+  DasomDynamixel.msg
 )
 
 add_service_files(
@@ -47,6 +48,7 @@ add_service_files(
   WheelCommand.srv
   GetDynamixelInfo.srv
   DynamixelCommand.srv
+  EECommand.srv
 )
 
 generate_messages(

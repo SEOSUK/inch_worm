@@ -32,7 +32,7 @@
   #else
   #define WINDECLSPEC __declspec(dllimport)
   #endif
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #define WINDECLSPEC
 #endif
 

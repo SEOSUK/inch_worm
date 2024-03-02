@@ -23,7 +23,7 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "protocol1_packet_handler.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/protocol1_packet_handler.h"
 #endif
 
@@ -157,7 +157,7 @@ int Protocol1PacketHandler::txPacket(PortHandler *port, uint8_t *txpacket)
   return COMM_SUCCESS;
 }
 
-int Protocol1PacketHandler::rxPacket(PortHandler *port, uint8_t *rxpacket, bool skip_stuffing)
+int Protocol1PacketHandler::rxPacket(PortHandler *port, uint8_t *rxpacket)
 {
   int     result         = COMM_TX_FAIL;
 
@@ -752,14 +752,4 @@ int Protocol1PacketHandler::bulkReadTx(PortHandler *port, uint8_t *param, uint16
 int Protocol1PacketHandler::bulkWriteTxOnly(PortHandler *port, uint8_t *param, uint16_t param_length)
 {
   return COMM_NOT_AVAILABLE;
-}
-
-int Protocol1PacketHandler::fastSyncReadTx(PortHandler *port, uint16_t start_address, uint16_t data_length, uint8_t *param, uint16_t param_length)
-{
-    return COMM_NOT_AVAILABLE;
-}
-
-int Protocol1PacketHandler::fastBulkReadTx(PortHandler *port, uint8_t *param, uint16_t param_length)
-{
-    return COMM_NOT_AVAILABLE;
 }

@@ -48,15 +48,6 @@
     <ClCompile Include="..\..\..\src\dynamixel_sdk\protocol2_packet_handler.cpp">
       <Filter>Source Files\dynamixel_sdk</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\dynamixel_sdk\group_fast_bulk_read.cpp">
-      <Filter>Source Files\dynamixel_sdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\dynamixel_sdk\group_fast_sync_read.cpp">
-      <Filter>Source Files\dynamixel_sdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\dynamixel_sdk\group_handler.cpp">
-      <Filter>Source Files\dynamixel_sdk</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\dynamixel_sdk\dynamixel_sdk.h">
@@ -87,15 +78,6 @@
       <Filter>Header Files\dynamixel_sdk</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\dynamixel_sdk\protocol2_packet_handler.h">
-      <Filter>Header Files\dynamixel_sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\dynamixel_sdk\group_fast_bulk_read.h">
-      <Filter>Header Files\dynamixel_sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\dynamixel_sdk\group_fast_sync_read.h">
-      <Filter>Header Files\dynamixel_sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\dynamixel_sdk\group_handler.h">
       <Filter>Header Files\dynamixel_sdk</Filter>
     </ClInclude>
   </ItemGroup>
