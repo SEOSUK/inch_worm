@@ -77,6 +77,9 @@ Eigen::Vector2d gravity_mat;
 
 Eigen::Vector2d measured_phi_rad;
 Eigen::Vector2d torque_from_phi;
+Eigen::Vector2d deadzone_max;
+Eigen::Vector2d deadzone_min;
+
 double phi_offset = 0;
 
 
@@ -91,13 +94,13 @@ double phi_convert2Radian = 2*3.141592/360;
 double freq_sin = 0.10;
 double Amp_sin = 0.6;
 
-double m_x = 0.02;
-double b_x = 0.08;
-double k_x = 0.28;
+double m_x = 0;
+double b_x = 0;
+double k_x = 0;
 
-double m_y = 0.02;
-double b_y = 0.08;
-double k_y = 0.28;
+double m_y = 0;
+double b_y = 0;
+double k_y = 0;
 
 double length_1 = 0.24075;
 double length_2 = 0.149;
@@ -140,16 +143,19 @@ void initParameters()
 	torque_constant << 1, 1;
 
 	//-----MDK Model ------//
-	double m_x = 10000;
-	double b_x = 10000;
-	double k_x = 0;
+	m_x = 100000;
+	b_x = 100000;
+	k_x = 100000;
 
-	double m_y = 10000;
-	double b_y = 10000;
-	double k_y = 0;
+	m_y = 100000;
+	b_y = 100000;
+	k_y = 100000;
 
     angle_max << 130 * phi_convert2Radian, 130 * phi_convert2Radian;
     angle_min << -130 * phi_convert2Radian, -130 * phi_convert2Radian;
+
+	deadzone_max << 0, 0;
+	deadzone_min << 0, 0;
 
 }
 
@@ -183,7 +189,7 @@ void calc_admittance_x()
 
 	position_from_model_x = X_from_model_matrix_T_x[0];
 
-	position_command[0] = position_reference[0];// - position_from_model_x; //- measured_phi_rad;
+	position_command[0] = position_reference[0] - position_from_model_x; //- measured_phi_rad;
 }
 
 void init_admittance_y()
@@ -214,7 +220,7 @@ void calc_admittance_y()
 
 	position_from_model_y = X_from_model_matrix_T_y[0];
 
-	position_command[1] = position_reference[1];// - position_from_model_y; //- measured_phi_rad;
+	position_command[1] = position_reference[1] - position_from_model_y; //- measured_phi_rad;
 }
 
 Eigen::Matrix2d Jacobian(Eigen::Vector2d measured_angle)
@@ -227,6 +233,10 @@ Eigen::Matrix2d Jacobian(Eigen::Vector2d measured_angle)
 	return J;
 }
 
+  // else if (bf_F_ext[2] > hysteresis_max[2]) bf_F_ext[2] -= hysteresis_max[2];
+  // else if (bf_F_ext[2] < hysteresis_min[2]) bf_F_ext[2] -= hysteresis_min[2];
+
+
 void estimate_external_force()
 {
 	//calc gravity
@@ -234,12 +244,22 @@ void estimate_external_force()
 	gravity_mat[1] = com_2 * cos(angle_real[0] + angle_real[1]) * mass_2 * 9.81;
 
 	external_torque = torque_from_phi - gravity_mat;
-
-  	J = Jacobian(angle_meas);
+  	J = Jacobian(angle_real);
   	JT = J.transpose();
   	JTI = JT.inverse();
 
 	external_force = JTI * external_torque;
+
+	for(int i=0; i++; i<2)
+	{
+		if (external_force[i] <= deadzone_max[i] && external_force[i] >= deadzone_min[i]) external_force[i] = 0;
+		else if (external_force[i] > deadzone_max[i]) external_force[i] -= deadzone_max[i];
+		else if (external_force[i] < deadzone_min[i]) external_force[i] -= deadzone_min[i];
+	}
+
+
+	ROS_INFO("JTI \n %lf, %lf\n %lf, %lf",	JTI(0,0), JTI(0,1), JTI(1,0), JTI(1,1));
+	ROS_INFO("external_torque \n %lf, %lf",	external_torque[0], external_torque[1]);
 }
 
 void dynamixel_angle_Callback(const sensor_msgs::JointState &msg)
@@ -258,7 +278,6 @@ Eigen::Vector2d Forward_Kinematics(Eigen::Vector2d angle_meas)
     End_Effector_Position_meas_[1] = length_1*sin(angle_meas[0]) + length_2*sin(angle_meas[0] + angle_meas[1]);
 
     return End_Effector_Position_meas_;
-
 }
 
 void commandcallback(const geometry_msgs::Twist::ConstPtr &msg)
@@ -267,10 +286,16 @@ void commandcallback(const geometry_msgs::Twist::ConstPtr &msg)
 	// position_reference = command_position_fromGUI;
 }
 
-void encoder_phi_callback(const std_msgs::Float64::ConstPtr &msg)
+void encoder_phi_callback_1(const std_msgs::Float64::ConstPtr &msg)
 {
 	measured_phi_rad[0] = phi_convert2Radian* msg->data;
     torque_from_phi[0] = - measured_phi_rad[0] * torque_constant[0];
+}
+
+void encoder_phi_callback_2(const std_msgs::Float64::ConstPtr &msg)
+{
+	measured_phi_rad[1] = phi_convert2Radian* msg->data;
+    torque_from_phi[1] = - measured_phi_rad[1] * torque_constant[1];
 }
 
 Eigen::Vector2d Inverse_Kinematics(Eigen::Vector2d End_Effector_Position_cmd)
@@ -288,11 +313,6 @@ void joystickCallback(const geometry_msgs::Twist::ConstPtr &msg)
 	joystick_command[0] = msg->linear.x;
 	joystick_command[1] = msg->linear.y;
 	position_reference = joystick_command + init_position;
-
-	ROS_INFO("INITPOSITION: %lf, %lf", init_position[0], init_position[1]);
-	ROS_INFO("JOYSTICKCOMMAND: %lf, %lf", joystick_command[0], joystick_command[1]);
-	ROS_INFO("position_reference: %lf, %lf", position_reference[0], position_reference[1]);
-	ROS_INFO("--------------------------------------------");
 }
 
 Eigen::Vector2d Angle_Safe_Function(Eigen::Vector2d angle_cmd)
@@ -312,7 +332,7 @@ Eigen::Vector2d Angle_Safe_Function(Eigen::Vector2d angle_cmd)
     {
         return angle_cmd;
     }
-	return angle_cmd;
+	
 }
 
 int main(int argc, char** argv)
@@ -320,10 +340,12 @@ int main(int argc, char** argv)
 
 	ros::init(argc, argv, "Admittance_Test");
 	ros::NodeHandle n;
-	ros::Subscriber encoder_phi_sub_ = n.subscribe("/angle_deg", 10, encoder_phi_callback); // Effort, Position, Velocity
+	ros::Subscriber encoder_phi_sub_ = n.subscribe("/angle_deg", 10, encoder_phi_callback_1); // Effort, Position, Velocity
+	ros::Subscriber encoder_phi_2_sub_ = n.subscribe("/angle_deg1", 10, encoder_phi_callback_2); // Effort, Position, Velocity
 	ros::Publisher Commandpub = n.advertise<sensor_msgs::JointState>("/goal_dynamixel_position", 100); // Final Angle Command
     ros::Publisher measured_EE_position_pub_ = n.advertise<geometry_msgs::Twist>("/inch/EE_meas", 10);
 	ros::Publisher test_Pub_ = n.advertise<geometry_msgs::Twist>("/test", 100); //이것저것 테스트용 퍼블리셔입니다
+  	ros::ServiceServer admittance_Server_ = n.advertiseService("/admittanceSrv", admittanceCallback);
 
 //	ros::Subscriber End_Effector_Position_cmd_sub_ = nh.subscribe("/inch/EE_cmd_gui",100,EE_cmd_gui_Callback,ros::TransportHints().tcpNoDelay());
     ros::Subscriber dynamixel_angle_sub_ = n.subscribe("/joint_states", 100, dynamixel_angle_Callback, ros::TransportHints().tcpNoDelay());
@@ -331,7 +353,6 @@ int main(int argc, char** argv)
 
 
 	sensor_msgs::JointState cmd;
-//	ros::Subscriber hapticCallback_sub = n.subscribe("/now_haptic_endEffector_publisher", 10, hapticCallback);
  
 	initParameters();
 	init_admittance_x();
@@ -345,13 +366,13 @@ int main(int argc, char** argv)
 	ros::spinOnce();
     init_position = Forward_Kinematics(angle_meas);
 	ROS_INFO("%lf, %lf", init_position[0], init_position[1]);
-
-
 	// ---조이스틱 초기값 설정용입니다 End
+
+
 
 	time_i_loop = ros::Time::now().toSec(); // 키자마자 퍽 튀기 방지용
 
-	ros::Rate rate(250);
+	ros::Rate rate(100);
 
 
     geometry_msgs::Twist EE_meas;
@@ -375,10 +396,14 @@ int main(int argc, char** argv)
 
 
 
-    angle_cmd = Inverse_Kinematics(position_command);
+    angle_cmd = Inverse_Kinematics(position_reference);
+	angle_cmd += measured_phi_rad;
 	angle_safe = Angle_Safe_Function(angle_cmd);
-    End_Effector_Position_meas = Forward_Kinematics(angle_meas);
+    End_Effector_Position_meas = Forward_Kinematics(angle_cmd);
 
+	ROS_INFO("FK: [%lf][%lf]", End_Effector_Position_meas[0], End_Effector_Position_meas[1]);
+	ROS_INFO("CMD: [%lf][%lf]", position_reference[0], position_reference[1]);
+	ROS_INFO("===================================");
 
 
 	cmd.position.push_back(angle_safe[0]);
@@ -390,12 +415,15 @@ int main(int argc, char** argv)
     measured_EE_position_pub_.publish(EE_meas);
 
 
-	test_topic.linear.x = angle_safe[0];
-	test_topic.linear.y = angle_safe[1];
-	test_topic.linear.z = measured_phi_rad[0];
-	test_topic.angular.x = angle_safe[0];
-	test_topic.angular.y = angle_safe[1];
+	test_topic.linear.x = position_command[0];
+	test_topic.linear.y = position_command[1];
+	test_topic.angular.x = position_reference[0];
+	test_topic.angular.y = position_reference[1];
 	test_Pub_.publish(test_topic);
+
+
+
+
 
 	rate.sleep();
 

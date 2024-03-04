@@ -36,16 +36,12 @@ PositionControl::PositionControl()
 
   dxl_wb_ = new DynamixelWorkbench;
 
-    ROS_WARN("asdfasdfasdf");
 
 
   dxl_wb_->begin(device_name.c_str(), dxl_baud_rate);
-    ROS_FATAL("aa");
 
   if (dxl_wb_->scan(dxl_id_, &dxl_cnt_, scan_range) != true)
   {
-    ROS_FATAL("aaaaa");
-
     ROS_ERROR("Not found Motors, Please check scan range or baud rate");
     ros::shutdown();
     return;
@@ -54,15 +50,19 @@ PositionControl::PositionControl()
 
   initMsg();
 
-  for (int index = 0; index < dxl_cnt_; index++)
-  {
-    dxl_wb_->itemWrite(dxl_id_[index], "Torque_Enable", 0);
-    dxl_wb_->itemWrite(dxl_id_[index], "Operating_Mode", X_SERIES_CURRENT_BASED_POSITION_CONTROL_MODE);
-    dxl_wb_->itemWrite(dxl_id_[index], "Torque_Enable", 1);
-  }
+  // for (int index = 0; index < dxl_cnt_; index++)
+  // {
+  //   dxl_wb_->itemWrite(dxl_id_[index], "Torque_Enable", 0);
+  //   dxl_wb_->itemWrite(dxl_id_[index], "Operating_Mode", X_SERIES_CURRENT_BASED_POSITION_CONTROL_MODE);
+  //   dxl_wb_->itemWrite(dxl_id_[index], "Torque_Enable", 1);
+  // }
+
+    for (int index = 0; index < dxl_cnt_; index++)
+    dxl_wb_->jointMode(dxl_id_[index], profile_velocity, profile_acceleration);
   
   dxl_wb_->addSyncWrite("Goal_Position");
   dxl_wb_->addSyncRead("Present_Position");
+  dxl_wb_->addSyncRead("Present_Current");
 
   for (int index = 0; index < dxl_cnt_; index++)
   {
@@ -104,12 +104,38 @@ void PositionControl::initMsg()
 
 void PositionControl::initPublisher()
 {
+  dynamixel_state_list_pub_ = node_handle_.advertise<dynamixel_workbench_msgs::DynamixelStateList>("dynamixel_state", 10);
   joint_states_pub_ = node_handle_.advertise<sensor_msgs::JointState>("joint_states", 10);
 }
 
 void PositionControl::initSubscriber()
 {
   joint_command_sub_ = node_handle_.subscribe("/goal_dynamixel_position", 10, &PositionControl::goalJointPositionCallback, this);
+}
+double present_current = 0;
+void PositionControl::dynamixelStatePublish()
+{
+  dynamixel_workbench_msgs::DynamixelState     dynamixel_state[dxl_cnt_];
+  dynamixel_workbench_msgs::DynamixelStateList dynamixel_state_list;
+
+  for (int index = 0; index < dxl_cnt_; index++)
+  {
+    dynamixel_state[index].model_name          = std::string(dxl_wb_->getModelName(dxl_id_[index]));
+    dynamixel_state[index].id                  = dxl_id_[index];
+    dynamixel_state[index].torque_enable       = dxl_wb_->itemRead(dxl_id_[index], "Torque_Enable");
+    dynamixel_state[index].present_position    = dxl_wb_->itemRead(dxl_id_[index], "Present_Position");
+    dynamixel_state[index].present_velocity    = dxl_wb_->itemRead(dxl_id_[index], "Present_Velocity");
+    dynamixel_state[index].present_current     = dxl_wb_->itemRead(dxl_id_[index], "Present_Current");
+    present_current = dynamixel_state[index].present_current;
+
+    dynamixel_state[index].goal_position       = dxl_wb_->itemRead(dxl_id_[index], "Goal_Position");
+    dynamixel_state[index].goal_velocity       = dxl_wb_->itemRead(dxl_id_[index], "Goal_Velocity");
+    dynamixel_state[index].goal_current        = dxl_wb_->itemRead(dxl_id_[index], "Goal_Current");
+    dynamixel_state[index].moving              = dxl_wb_->itemRead(dxl_id_[index], "Moving");
+
+    dynamixel_state_list.dynamixel_state.push_back(dynamixel_state[index]);
+  }
+  dynamixel_state_list_pub_.publish(dynamixel_state_list);
 }
 
 void PositionControl::jointStatePublish()
