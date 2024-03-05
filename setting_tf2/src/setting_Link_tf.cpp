@@ -46,7 +46,7 @@ void Link2Callback(geometry_msgs::PoseStamped msg)
 
     transformStamped.header.stamp = ros::Time::now();
     transformStamped.header.frame_id = "world";
-    transformStamped.child_frame_id = "Link1";
+    transformStamped.child_frame_id = "Link2";
     transformStamped.transform.translation.x = msg.pose.position.x;
     transformStamped.transform.translation.y = msg.pose.position.y;
     transformStamped.transform.translation.z = msg.pose.position.z;
@@ -71,8 +71,8 @@ int main(int argc, char **argv){
     ros::init(argc,argv,"setting_Link_tf");
 
     ros::NodeHandle nh;
-    ros::Subscriber Link1_sub_ = nh.subscribe("/inch/Link1", 10, Link1Callback, ros::TransportHints().tcpNoDelay());
-    ros::Subscriber Link2_sub_ = nh.subscribe("/inch/Link2", 10, Link2Callback, ros::TransportHints().tcpNoDelay());
+    ros::Subscriber Link1_sub_ = nh.subscribe("/inchlink1/world", 10, Link1Callback, ros::TransportHints().tcpNoDelay());
+    ros::Subscriber Link2_sub_ = nh.subscribe("/inchlink2/world", 10, Link2Callback, ros::TransportHints().tcpNoDelay());
     ros::Publisher Link_Pub_ = nh.advertise<geometry_msgs::Twist>("/inch/Link_angle", 10);
     ros::Rate loop(100);
 
