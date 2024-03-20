@@ -267,6 +267,8 @@ void dynamixel_angle_Callback(const sensor_msgs::JointState &msg)
 {
     angle_meas[0] = msg.position.at(0);
     angle_meas[1] = msg.position.at(1);
+
+	angle_real = angle_meas; //옵티트랙 키면 이거 끄자
 }
 
 Eigen::Vector2d Forward_Kinematics(Eigen::Vector2d angle_meas)
@@ -313,7 +315,7 @@ Eigen::Vector2d Inverse_Kinematics(Eigen::Vector2d End_Effector_Position_cmd)
 
 void joystickCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
-	joystick_command[0] = msg->linear.x;
+	joystick_command[0] = - msg->linear.x;
 	joystick_command[1] = msg->linear.y;
 	position_reference = joystick_command + init_position;
 }
@@ -416,9 +418,9 @@ int main(int argc, char** argv)
 	angle_safe = Angle_Safe_Function(angle_cmd);
     End_Effector_Position_meas = Forward_Kinematics(angle_real);
 
-	ROS_INFO("FK: [%lf][%lf]", End_Effector_Position_meas[0], End_Effector_Position_meas[1]);
-	ROS_INFO("CMD: [%lf][%lf]", position_reference[0], position_reference[1]);
-	ROS_INFO("===================================");
+	// ROS_INFO("FK: [%lf][%lf]", End_Effector_Position_meas[0], End_Effector_Position_meas[1]);
+	// ROS_INFO("CMD: [%lf][%lf]", position_reference[0], position_reference[1]);
+	// ROS_INFO("===================================");
 
 
 	cmd.position.push_back(angle_safe[0]);
