@@ -24,11 +24,11 @@ CoM1 = 0.117; %m
 CoM2 = 0.045; %m
 
 %SEA value
-k1 = 5.9*10^3; %N/m
-k2 = 5.9*10^3; %N/m
+k1 = 2.9*10^3; %N/m
+k2 = 2.9*10^3; %N/m
 
 c1 = 0.05; %ma.um.dea.ro value
-c2 = 0.05;%ma.um.dea.ro value
+c2 = 0.05; %ma.um.dea.ro value
 
 J1 = m1*L1^2/12 + m1*CoM1^2;                     %kgm^2
 J2 = m2*L2^2/12 + m2*CoM2^2 + (mEE*(L2-CoM2)^2); %kgm^2
