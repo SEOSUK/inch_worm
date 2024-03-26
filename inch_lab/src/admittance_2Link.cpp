@@ -8,6 +8,7 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense> 
 #include "inch_lab/admittanceSRV.h"
+#include "inch_lab/circleSRV.h"
 #define PI 3.14159265
 
 
@@ -25,9 +26,15 @@ double time_f_loop = 0;
 double time_loop = 0;
 double F = 0;
 
+//--For Circular trajectory --//
+double radius = 0;
+double freq = 0;
+double reps = 0; //서비스 마저 만들자~
+//-- end --//
 
 
 Eigen::Vector2d position_reference;   //  위치 입력값
+Eigen::Vector2d position_reference_vel_limit;
 Eigen::Vector2d position_command;     //  최종 위치 
 Eigen::Vector2d joystick_command;
 Eigen::Vector2d End_Effector_Position_meas;
@@ -110,6 +117,9 @@ double mass_2 = 0.14;
 double com_1 = 0.14; // 0.117 
 double com_2 = 0.045;
 
+double vel_limit = 0.001;  // [m/s]
+
+
 void init_admittance_x();
 void init_admittance_y();
 
@@ -130,6 +140,19 @@ bool admittanceCallback(inch_lab::admittanceSRV::Request  &req,
 
   ROS_WARN("MDK Changed!");
 
+  return true;
+}
+
+bool circleCallback(inch_lab::circleSRV::Request  &req,
+                                      inch_lab::circleSRV::Response &res)
+{
+
+  radius = req.radius;
+  
+  freq = req.freq;
+  reps = req.reps;
+
+  ROS_INFO("radius: [%lf], freq: [%lf], reps: [%lf]", radius, freq, reps);
   return true;
 }
 
@@ -157,6 +180,8 @@ void initParameters()
 
 	deadzone_max << 0, 0;
 	deadzone_min << 0, 0;
+	
+	vel_limit = 1;  // [m/s]end_effector velocity_limit
 
 }
 
@@ -278,8 +303,6 @@ Eigen::Vector2d Forward_Kinematics(Eigen::Vector2d angle_meas)
     End_Effector_Position_meas_[0] = length_1*cos(angle_meas[0]) + length_2*cos(angle_meas[0] + angle_meas[1]);
     End_Effector_Position_meas_[1] = length_1*sin(angle_meas[0]) + length_2*sin(angle_meas[0] + angle_meas[1]);
 
-	ROS_INFO("angle_real \n %lf, %lf",	angle_real[0], angle_real[1]);
-
     return End_Effector_Position_meas_;
 }
 
@@ -351,6 +374,35 @@ Eigen::Vector2d Angle_Safe_Function(Eigen::Vector2d angle_cmd)
 	
 }
 
+void trajectory_generator()
+{
+	if(reps>0)
+	{
+		reps = reps - time_loop;
+		position_reference[0] = radius * cos(2*PI*freq*reps) + 0.1;
+		position_reference[1] = radius * sin(2*PI*freq*reps) + 0.2;
+	}
+}
+
+void EE_cmd_Velocity_Limit()
+{
+  for (int i = 0; i < 2; i++)
+  {
+    if((position_reference[i] - position_reference_vel_limit[i]) > 0.001) 
+    {
+      position_reference_vel_limit[i] = position_reference_vel_limit[i] + vel_limit * time_loop;
+    }
+    else if ((position_reference[i] - position_reference_vel_limit[i]) < - 0.001) 
+    {
+      position_reference_vel_limit[i] = position_reference_vel_limit[i] - vel_limit * time_loop;     
+    }
+    else
+    {
+      position_reference_vel_limit[i] = position_reference[i];
+    }
+  }
+}
+
 int main(int argc, char** argv)
 {
 
@@ -362,6 +414,8 @@ int main(int argc, char** argv)
     ros::Publisher measured_EE_position_pub_ = n.advertise<geometry_msgs::Twist>("/inch/EE_meas", 10);
 	ros::Publisher test_Pub_ = n.advertise<geometry_msgs::Twist>("/test", 100); //이것저것 테스트용 퍼블리셔입니다
   	ros::ServiceServer admittance_Server_ = n.advertiseService("/admittanceSrv", admittanceCallback);
+  	ros::ServiceServer Circle_Server_ = n.advertiseService("/circleSrv", circleCallback);
+
 
 //	ros::Subscriber End_Effector_Position_cmd_sub_ = nh.subscribe("/inch/EE_cmd_gui",100,EE_cmd_gui_Callback,ros::TransportHints().tcpNoDelay());
     ros::Subscriber dynamixel_angle_sub_ = n.subscribe("/joint_states", 100, dynamixel_angle_Callback, ros::TransportHints().tcpNoDelay());
@@ -376,20 +430,20 @@ int main(int argc, char** argv)
 	init_admittance_y();
 
 
-	// --조이스틱 초기값 설정용입니다.
+	// --초기값 설정용입니다.
 	ros::Rate init_rate(1);
 	ros::spinOnce();
 	init_rate.sleep();
 	ros::spinOnce();
     init_position = Forward_Kinematics(angle_real);
 	ROS_INFO("%lf, %lf", init_position[0], init_position[1]);
-	// ---조이스틱 초기값 설정용입니다 End
-
-
+	// --초기값 설정용입니다 End
+	position_reference = init_position;
+	position_reference_vel_limit = init_position;
 
 	time_i_loop = ros::Time::now().toSec(); // 키자마자 퍽 튀기 방지용
 
-	ros::Rate rate(100);
+	ros::Rate rate(200);
 
 
     geometry_msgs::Twist EE_meas;
@@ -398,6 +452,7 @@ int main(int argc, char** argv)
 	{
 
 	ros::spinOnce();
+	ROS_INFO("End_Effector_Position_meas \n %lf, %lf",End_Effector_Position_meas[0], End_Effector_Position_meas[1]);
 
 	sensor_msgs::JointState cmd;
 	geometry_msgs::Twist test_topic;
@@ -406,14 +461,16 @@ int main(int argc, char** argv)
 	time_loop = time_f_loop - time_i_loop;
 	time_i_loop = ros::Time::now().toSec();
 
-	estimate_external_force();
+	// estimate_external_force();
 
-	calc_admittance_x();
-	calc_admittance_y();
+	// calc_admittance_x();
+	// calc_admittance_y();
 
 
 
-    angle_cmd = Inverse_Kinematics(position_reference);
+	trajectory_generator();
+	EE_cmd_Velocity_Limit(); // EE_vel_LIMIT 걸어주는 함수. Position_reference 를 position_reference_vel_limit으로 변환. 
+    angle_cmd = Inverse_Kinematics(position_reference_vel_limit);
 	angle_cmd -= measured_phi_rad;
 	angle_safe = Angle_Safe_Function(angle_cmd);
     End_Effector_Position_meas = Forward_Kinematics(angle_real);
@@ -432,10 +489,10 @@ int main(int argc, char** argv)
     measured_EE_position_pub_.publish(EE_meas);
 
 
-	test_topic.linear.x = position_command[0];
-	test_topic.linear.y = position_command[1];
-	test_topic.angular.x = position_reference[0];
-	test_topic.angular.y = position_reference[1];
+	test_topic.linear.x = position_reference[0];
+	test_topic.linear.y = position_reference[1];
+	test_topic.angular.x = position_reference_vel_limit[0];
+	test_topic.angular.y = position_reference_vel_limit[1];
 	test_Pub_.publish(test_topic);
 
 

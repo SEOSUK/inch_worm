@@ -59,6 +59,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_service_files(
    FILES
    admittanceSRV.srv
+   circleSRV.srv
  )
 
 generate_messages(

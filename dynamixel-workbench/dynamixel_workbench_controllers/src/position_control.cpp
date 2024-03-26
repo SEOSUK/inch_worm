@@ -207,7 +207,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "position_control");
   PositionControl pos_ctrl;
 
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(200);
 
   while (ros::ok())
   {
