@@ -30,6 +30,7 @@ double F = 0;
 double radius = 0;
 double freq = 0;
 double reps = 0; //서비스 마저 만들자~
+double joystick_command_Flag = true;
 //-- end --//
 
 
@@ -38,7 +39,9 @@ Eigen::Vector2d position_reference_vel_limit;
 Eigen::Vector2d position_command;     //  최종 위치 
 Eigen::Vector2d joystick_command;
 Eigen::Vector2d End_Effector_Position_meas;
-Eigen::Vector2d init_position;
+Eigen::Vector2d init_position; // 내가 설정한 초기 위치
+Eigen::Vector2d first_position; //그냥 노드 켰을 때 위치
+
 
 
 Eigen::Matrix2d A_x;
@@ -146,6 +149,7 @@ bool admittanceCallback(inch_lab::admittanceSRV::Request  &req,
 bool circleCallback(inch_lab::circleSRV::Request  &req,
                                       inch_lab::circleSRV::Response &res)
 {
+  joystick_command_Flag = false;
 
   radius = req.radius;
   
@@ -154,6 +158,7 @@ bool circleCallback(inch_lab::circleSRV::Request  &req,
 
   ROS_INFO("radius: [%lf], freq: [%lf], reps: [%lf]", radius, freq, reps);
   return true;
+
 }
 
 void sin_generator()
@@ -165,6 +170,8 @@ void sin_generator()
 void initParameters()
 {
 	torque_constant << 1, 1;
+
+	init_position << 0.2, 0.1;
 
 	//-----MDK Model ------//
 	m_x = 100000;
@@ -182,7 +189,6 @@ void initParameters()
 	deadzone_min << 0, 0;
 	
 	vel_limit = 1;  // [m/s]end_effector velocity_limit
-
 }
 
 
@@ -382,6 +388,7 @@ void trajectory_generator()
 		position_reference[0] = radius * cos(2*PI*freq*reps) + 0.1;
 		position_reference[1] = radius * sin(2*PI*freq*reps) + 0.2;
 	}
+	else joystick_command_Flag = true;
 }
 
 void EE_cmd_Velocity_Limit()
@@ -435,11 +442,13 @@ int main(int argc, char** argv)
 	ros::spinOnce();
 	init_rate.sleep();
 	ros::spinOnce();
-    init_position = Forward_Kinematics(angle_real);
+    first_position = Forward_Kinematics(angle_real);
 	ROS_INFO("%lf, %lf", init_position[0], init_position[1]);
-	// --초기값 설정용입니다 End
+	// // --초기값 설정용입니다 End
+
+
+	position_reference_vel_limit = first_position;
 	position_reference = init_position;
-	position_reference_vel_limit = init_position;
 
 	time_i_loop = ros::Time::now().toSec(); // 키자마자 퍽 튀기 방지용
 
@@ -452,7 +461,7 @@ int main(int argc, char** argv)
 	{
 
 	ros::spinOnce();
-	ROS_INFO("End_Effector_Position_meas \n %lf, %lf",End_Effector_Position_meas[0], End_Effector_Position_meas[1]);
+	ROS_INFO("position_reference_vel_limit \n %lf, %lf",position_reference_vel_limit[0], position_reference_vel_limit[1]);
 
 	sensor_msgs::JointState cmd;
 	geometry_msgs::Twist test_topic;
